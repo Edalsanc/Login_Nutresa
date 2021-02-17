@@ -1,0 +1,35 @@
+<script>
+
+//Esta funcion carga los datos de inicio de sesion
+window.onload = function iniciar() {
+
+	$('[data-toggle="tooltip"]').tooltip();
+	google.script.run.withSuccessHandler(inicio).allValues();
+
+
+}
+
+//Esta función crea la imagen y nombres de la sesion activa
+function inicio(datos) {
+
+	let imagen = "https://drive.google.com/uc?id=" + datos.image;
+	$("#userName").html(datos.name);
+	$("#userEmail").html(datos.email);
+
+	console.log("ingresó  " + JSON.stringify(datos));
+    
+	if (datos.image != "") {
+		$('#perfil').attr('src', imagen).css({
+			"width": "50px",
+			"height": "50px",
+			"border-radius": "150px"
+		});
+
+	} else {
+
+		$('#image').html("<i class=\"fas fa-user-tie userIcon\"></i>");
+
+	}
+}
+
+</script>

@@ -1,0 +1,228 @@
+<script>
+	//variables globales
+  var arrayItemsTabla = [];
+  var arrayItemsDb = [];
+  var arrayDB = [];
+
+	//lo que queremos que este por defecto cuando se cargue la pagina
+  window.onload = function infoInicial() {
+     //google.script.run.withSuccessHandler(DesplegableGestores).listas("gestores");
+     var input = document.getElementById("inputSubc");
+     input.setAttribute("readonly", "readonly");
+  }
+
+  //Botones
+    document.getElementById("agregar").addEventListener("click", arraySolicitud);
+
+  function DesplegableGestores(lista) {
+
+    //Innicializamos la variable que ira en el HTML con el valor inicial "Seleccione"
+    var TipoHTML = "<option>Seleccione</option>";
+    var SelectGestor = document.getElementById("selectGestor");
+
+    //Construimos la lista con cada valor
+    for (i = 0; i < lista.length; i++) {
+      TipoHTML = TipoHTML + "<option>" + lista[i] + "</option>"
+    }
+
+    SelectGestor.innerHTML = TipoHTML;
+  }
+
+  function inputEnable(){
+    //Obtenemos el valor seleccionado
+      var tipo = document.getElementById("selectTipo").value;
+      var input = document.getElementById("inputSubc");
+        //De acuerdo al valor seleccionado ejecutamos las funciones con un argumento
+      if (tipo == "Subcontratista") {
+        input.removeAttribute('readonly');
+      }
+      if (tipo == "Empleado") {
+        input.setAttribute("readonly", "readonly");
+      }
+  }
+    //Obtiene toda la información de los campos y genera y alimenta el array que contiene
+    //toda la información de la solicitud
+    function arraySolicitud() {
+
+        var itemNombre = document.getElementById("inputNombre").value;
+        var itemDoc = document.getElementById("selectDoc").value;
+        var itemNumDoc = document.getElementById("inputDoc").value;
+        var itemContratista = document.getElementById("inputCont").value;
+        var itemTipo = document.getElementById("selectTipo").value;
+        
+        var itemEstado = document.getElementById("selectEstado").value;
+        var itemDelete = "Eliminar"
+
+        if(itemTipo == "Empleado"){
+          var itemSubcontratista = "N/A"
+        }else{
+          var itemSubcontratista = document.getElementById("inputSubc").value;
+        }
+
+        var tiempoDate = new Date(Date.now())
+        var fecha = tiempoDate.toLocaleString('es-ES');
+
+        var camposNulos = ["Seleccione", "", null, undefined];
+        var banderaNulo = false;
+
+        var arrayCampos = [itemNombre, itemDoc, itemNumDoc, itemContratista, itemTipo, itemSubcontratista, itemEstado,fecha, itemDelete];
+
+        for (i = 0; i < arrayCampos.length; i++) {
+            if (camposNulos.indexOf(arrayCampos[i]) > -1) {
+                toastr["error"]("Por favor diligencie todos los campos para continuar.", "Campos faltantes")
+                toastr.options = {
+                  "closeButton": true,
+                  "debug": false,
+                  "newestOnTop": false,
+                  "progressBar": true,
+                  "positionClass": "toast-top-right",
+                  "preventDuplicates": false,
+                  "onclick": null,
+                  "showDuration": "300",
+                  "hideDuration": "1000",
+                  "timeOut": "5000",
+                  "extendedTimeOut": "1000",
+                  "showEasing": "swing",
+                  "hideEasing": "linear",
+                  "showMethod": "fadeIn",
+                  "hideMethod": "fadeOut"
+                }
+                banderaNulo = true;
+                break;
+            }
+        }
+        if (banderaNulo == false) {
+            arrayCamposTabla = [itemNombre, itemDoc, itemNumDoc, itemContratista, itemTipo, itemSubcontratista, itemEstado,fecha, itemDelete]
+            arrayDB.push([itemNombre, itemDoc, itemNumDoc, itemContratista, itemTipo, itemSubcontratista, itemEstado,fecha]);
+            arrayItemsTabla.push(arrayCamposTabla)
+            arrayItemsDb.push(arrayCampos)
+            tablaSolicitud(arrayItemsTabla)
+
+            //dejamos la vista en la tabla
+            window.scrollTo(0, document.body.scrollHeight);
+
+            //reseteamos los campos del formulario
+            var itemNombre = document.getElementById("inputNombre").value = "";
+            var itemDoc = document.getElementById("selectDoc").value = "Seleccione";
+            var itemNumDoc = document.getElementById("inputDoc").value = "";
+            var itemContratista = document.getElementById("inputCont").value ="";
+            var itemTipo = document.getElementById("selectTipo").value = "Seleccione";
+            var itemSubcontratista = document.getElementById("inputSubc").value = "";
+            var itemEstado = document.getElementById("selectEstado").value = "Seleccione";
+
+            // //deshabilitamos campo de subcontratista
+            var input = document.getElementById("inputSubc");
+            input.setAttribute("readonly", "readonly");
+        }
+    }
+
+    //Genera la tabla con el contenido del array
+    function tablaSolicitud(arrayCamposTabla) {
+
+        if (arrayCamposTabla.length > 0) {
+            var encabezados = ["Nombre", "Tipo de documento", "Nº Documento", "Contratista", "Tipo vinculaciòn", "Subcontratista",
+                "Estado", "Fecha registro" , "Eliminar"];
+            var tabla = "<table id=\"tab\" class=\"table table-hover table-dark\">";
+
+            //ENCABEZADO
+            tabla += "<tr>";
+            for (var k = 0; k < arrayCamposTabla[0].length; k++) {
+                if (encabezados[k].toString() == "Eliminar") {
+                    tabla += "<th class=\"tdencabezado\"><i class=\"fas fa-trash-alt\"></i></th>";
+                } else {
+                    tabla += "<th class=\"tdencabezado\">" + encabezados[k].toString() + "</th>";
+                }
+            }
+            tabla += "</tr>";
+
+            //CUERPO 
+            for (var i = 0; i < arrayCamposTabla.length; i++) {
+                tabla += "<tr>"
+
+                for (var j = 0; j < arrayCamposTabla[0].length; j++) {
+                    if (arrayCamposTabla[i][j].toString() == "Eliminar") {
+                        tabla += "<td ><button type=\"button\" id =\"borrarFila\" onclick=\"elminarFila(" + i +
+                            ")\" class=\"borrarFila\"><i class=\"fas fa-times\"></i></button></td>";
+                    } else {
+                        tabla += "<td >" +
+                            arrayCamposTabla[i][j].toString() + "</td>";
+                    }
+                }
+                tabla += "</tr>";
+            }
+            tabla += "</table>";
+
+            var tituloTabla = "<h3 class=\"titulo_form\">Resumen Registro</h3>";
+            var contenidoDivTabla = tituloTabla + tabla;
+
+            var divTabla = document.getElementById("divTablaSol");
+            divTabla.innerHTML = contenidoDivTabla;
+
+            var contenidoDivSubmit = "<button type=\"button\" class=\"btn submitGD\" onclick=\"submitInfo()\">Realizar registro</button>" +
+                "<button type=\"button\" class=\"btn submitGD arriba\" onclick=\"goTop()\"><i class=\"fas fa-angle-up\"></i></button>"
+            var divSubmit = document.getElementById("divSubmit");
+            divSubmit.innerHTML = contenidoDivSubmit;
+        } else {
+            var Advertenciatabla = "<h3 class=\"titulo_form\">Se han eliminado todos los documentos</h3>";
+            var imgTabla = "<i class=\"far fa-file-excel imgTabla\"></i>"
+            var divTabla = document.getElementById("divTablaSol");
+            var divSubmit = document.getElementById("divSubmit");
+            divTabla.innerHTML = Advertenciatabla;
+            divSubmit.innerHTML = imgTabla;
+
+            //habilitamos el imput de fecha
+            //dateImput.removeAttribute('readonly');
+        }
+
+    }
+    
+    //Eliminamos la fila correspondiente en nuestra matriz
+    function elminarFila(index) {
+        arrayItemsTabla.splice(index, 1);
+        arrayItemsDb.splice(index, 1);
+        arrayDB.splice(index, 1);
+        tablaSolicitud(arrayItemsTabla)
+    }
+
+    //Al presionar el botón ubicado en la esquina inferior derecha vamos hacia el inicio de la paginna
+    function goTop() {
+        document.documentElement.scrollTop = 0;
+    }
+
+    function submitInfo() {
+      google.script.run.postDbs(arrayDB)
+      arrayItemsTabla = []
+      arrayItemsDb = []
+
+      var input = document.getElementById("inputSubc");
+      var divTabla = document.getElementById("divTablaSol");
+      var divSubmit = document.getElementById("divSubmit");
+
+      divTabla.innerHTML = "";
+      divSubmit.innerHTML = "";
+      input.setAttribute("readonly", "readonly");
+
+      toastr["info"]("Se a realizado el registro de forma satisfactoria.", "Registro satisfactorio")
+
+      toastr.options = {
+        "closeButton": true,
+        "debug": false,
+        "newestOnTop": false,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "preventDuplicates": false,
+        "onclick": null,
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "5000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+      }
+      
+        
+    //submitCleanNotify(codigo)
+    }
+</script>
