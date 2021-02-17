@@ -1,0 +1,96 @@
+<script>
+
+
+
+        var archivos = [];
+        var k = 0;
+
+
+        //Esta función elimina todos los datos de los input tipo file
+        $("#btnLimpiar").click(function() {
+            $("#idProgreso").css("display", "none");
+            $('.archivo').val('');
+            archivos = [];
+        });
+
+
+
+
+        //Esta funcion carga todos los archivos en un array de objetos
+        function arrayObjetos(f) {
+
+            archivos.push(f);
+            $("#idProgreso").css("display", "none");
+            $('#idBarra').removeClass('bg-success bg-danger').addClass('progress-bar-striped progress-bar-animated');
+            $('#idBarra').text('');
+            // $('.archivo').val('');
+
+        }
+
+        //Esta función ejecuta el metodo que carga los archivos al drive
+        function cargarInfo() {
+        
+            console.log("la longitud es " + archivos.length);
+
+            if (archivos.length > 0) {
+                for (var i = 0; i < archivos.length; i++) {
+                
+                    var f = archivos[i];
+
+                    setTimeout(saveFile(f), 4000);
+                    $("#idProgreso").css("display", "flex");
+                    console.log("se ejecuto " + new Date());
+
+                }
+            } else {
+                console.log("El array esta vacio");
+            }
+        }
+
+        function saveFile(f) {
+            var i = 1;
+            const file = f.files[0];
+            const fr = new FileReader();
+            fr.onload = function(e) {
+                const obj = {
+                    filename: file.name,
+                    mimeType: file.type,
+                    bytes: [...new Int8Array(e.target.result)]
+                };
+                google.script.run.withSuccessHandler(validacion).saveFile(obj, i);
+            };
+            fr.readAsArrayBuffer(file);
+        }
+
+
+        //Valida que se carguen los archivos
+        function validacion(e) {
+
+            var idBarra = "";
+            console.log("El mensaje de respuesta es " + e);
+            if (e) {
+
+
+                $('#idBarra').removeClass('progress-bar-striped progress-bar-animated').addClass('bg-success');
+                $('#idBarra').text('Completo');
+                $('.archivo').val('');
+                archivos = [];
+
+            } else {
+
+                $('#idBarra').removeClass('progress-bar-striped progress-bar-animated').addClass('bg-danger');
+                $('#idBarra').text('Hubo un error');
+                $('.archivo').val('');
+                archivos = [];
+
+            }
+        }
+        
+           
+        
+        
+      
+        
+        
+        
+    </script>

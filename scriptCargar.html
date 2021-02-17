@@ -1,0 +1,153 @@
+  <script>
+ 
+        //Esta función elimina todos los datos de los input tipo file
+        $("#btnLimpiar").click(function() {
+            $("#idProgreso").css("display", "none");
+            $('.archivo').val('');
+            archivos = [];
+        });
+
+
+        var archivos = [];
+        var k = 0;
+      
+        //Esta funcion carga todos los archivos en un array de objetos
+        function arrayObjetos(f) {
+
+            archivos.push(f);
+             $("#idProgreso").css("display", "none");
+               $('#idBarra').removeClass('bg-success bg-danger').addClass('progress-bar-striped progress-bar-animated');
+                    $('#idBarra').text('');
+                   // $('.archivo').val('');
+
+        }
+
+
+        function cargarInfo() {
+             //$("#idProgreso").css("display", "none");
+            console.log("esta es la longitud " + archivos.length);
+
+            if (archivos.length > 0) {
+                var longitud = archivos.length;
+                for (var i = 0; i < archivos.length; i++) {
+
+                    var f = archivos[i];
+
+                    var file = f.files[0];
+                    var fr = new FileReader();
+                    fr.onload = function(e) {
+
+                        var obj = {
+                            filename: file.name,
+                            mimeType: file.type,
+                            bytes: [...new Int8Array(e.target.result)]
+                        };
+                        
+                         $("#idProgreso").css("display", "flex");
+                         google.script.run.withSuccessHandler(validacion).saveFile(obj,i);
+                    };
+
+                    fr.readAsArrayBuffer(file);
+
+                }
+               google.script.run.cargarUrl();
+               
+            } else {
+                console.log("El array esta vacio");
+            }
+        }
+
+
+        //Valida que se carguen los archivos
+        function validacion(e) {
+
+            var idBarra = "";
+            console.log("El mensaje de respuesta es " + e);
+            if (e) {
+
+             
+                    $('#idBarra').removeClass('progress-bar-striped progress-bar-animated').addClass('bg-success');
+                    $('#idBarra').text('Completo');
+                    $('.archivo').val('');
+                    archivos = [];
+
+            }else{
+                    
+                    $('#idBarra').removeClass('progress-bar-striped progress-bar-animated').addClass('bg-danger');
+                    $('#idBarra').text('Hubo un error');
+                    $('.archivo').val('');
+                    archivos = [];
+            
+            }
+        }
+
+
+       
+  
+   /*
+    function cargarDatos(status) {
+      //  document.getElementById('myForm').style.display = 'none';
+       document.getElementById('btnCargar').value = "Login";
+        document.getElementById('result').innerHTML = status;
+        console.log("este es el estado " +status);
+    }
+    
+    */
+    
+      
+     
+     /*
+   function saveFile(f) {
+   
+    
+   
+     const objPadre = {arrays:[]}; 
+     
+     var progreso = document.getElementById("progreso");
+     progreso.style.display = "flex";
+ 
+     const file = f.files[0];
+     const fr = new FileReader();
+    fr.onload = function(e) {
+    
+      const obj = {
+        filename: file.name,
+        mimeType: file.type,
+        bytes: [...new Int8Array(e.target.result)]
+      };
+      
+     
+      //objPadre.arrays[0] = obj2;
+      //objPadre.arrays[1] = obj;
+       
+     
+      google.script.run.withSuccessHandler(validacion).saveFile(obj);
+    };
+    
+   
+   
+    fr.readAsArrayBuffer(file);
+  }
+  
+  
+  function validacion (e){
+   
+   console.log("El mensaje de respuesta es "+e);
+   if (e == "Done"){
+   
+  
+      
+      $('#barra').removeClass('progress-bar-striped progress-bar-animated').addClass('bg-success');
+      
+      $('#barra').val('Completo');
+   
+   }
+  
+  
+  }
+  */
+  
+  
+  
+  
+ </script>
